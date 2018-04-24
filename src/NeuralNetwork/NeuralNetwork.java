@@ -44,11 +44,6 @@ public class NeuralNetwork {
      * with the value of {@code BIAS})
      */
     public static final int BIAS = -1;
-    /**
-     * Represents the writer used to print
-     * network error statistics.
-     */
-    private BufferedWriter err_writer = null;
 
     /**
      * Represents the networks input layer
@@ -92,7 +87,9 @@ public class NeuralNetwork {
 
     }
 
-    public void init(int nbOfEpochs) throws Exception {
+    public void init(int nbOfEpochs) {
+        inputLayer.setInputs(new double[]{0.5, 0.2, 0.8, BIAS});
+        outputLayer.set_old_params(0.2,0.5,0.4);
         for (int i = 0; i < nbOfEpochs; i++) {
             printProgress(nbOfEpochs, i);
             train();
@@ -108,7 +105,7 @@ public class NeuralNetwork {
      */
     private void printProgress(int nbOfEpochs, int currentEpoch) {
         double percentage = (100. / (double) nbOfEpochs) * currentEpoch;
-        System.out.printf("\r[%.2f%%]", percentage);
+        System.out.printf("\r[%.2f%%] KP: %f, KD: %f, KI: %f", percentage, outputLayer.getOutputVector()[0], outputLayer.getOutputVector()[1], outputLayer.getOutputVector()[2]);
     }
 
     /**
@@ -119,15 +116,12 @@ public class NeuralNetwork {
      * @see #init(int)
      */
     private void train() {
-        inputLayer.setInputs(new double[]{0, 0, 0, BIAS});
 
         //forward phase
         hiddenLayer1.process();
         hiddenLayer2.process();
         outputLayer.process();
 
-        //classification error
-        outputLayer.calc_class_err(true);
 
         //Back propagation
         outputLayer.calculate_delta();
@@ -137,6 +131,9 @@ public class NeuralNetwork {
         outputLayer.adjustLayerWeights();
         hiddenLayer2.adjustLayerWeights();
         hiddenLayer1.adjustLayerWeights();
+
+        inputLayer.setInputs(new double[]{outputLayer.getOutputVector()[0], outputLayer.getOutputVector()[1], outputLayer.getOutputVector()[2], BIAS});
+        outputLayer.set_old_params(outputLayer.getOutputVector()[0], outputLayer.getOutputVector()[1], outputLayer.getOutputVector()[2]);
 
     }
 }
