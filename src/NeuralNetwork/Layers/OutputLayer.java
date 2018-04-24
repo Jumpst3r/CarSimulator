@@ -1,11 +1,13 @@
 package NeuralNetwork.Layers;
 
+import CarSimulator.CarSimulator;
 import Jama.Matrix;
 import NeuralNetwork.Neuron.Neuron;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Represents the networks output layer
@@ -13,6 +15,12 @@ import java.util.List;
  * @author Nicolas Dutly
  */
 public class OutputLayer extends Layer {
+
+    private double kp;
+    private double kd;
+    private double ki;
+    private double sp = 10;
+
     /**
      * Creates an output layer with {@code n} neurons
      *
@@ -72,38 +80,36 @@ public class OutputLayer extends Layer {
 
     }
 
-
-    /**
-     * Used to retrieve the training or validation classification error
-     * of the current epoch.
-     *
-     * @param trainingErr if set to true returns the training classification error, otherwise the validation
-     *                    classification error
-     * @return the classification error percentage (Ex: 5% means that 5% of the data lines i
-     * the training or validation (depending on the param) where incorrectly classified)
-     */
-    public double get_class_err(boolean trainingErr) {
-        double error_rate;
-        if (trainingErr) {
-            error_rate = (1 - (tr_correct / proccessed_training_sets)) * 100;
-            proccessed_training_sets = 0;
-            tr_correct = 0;
-        } else {
-            error_rate = (1 - (valid_correct / proccessed_validation_sets)) * 100;
-            proccessed_validation_sets = 0;
-            valid_correct = 0;
+    private double[] get_errors() {
+        double error;
+        double old_error = 0;
+        double integral = 0;
+        double derivative = 0;
+        double dt = 1;
+        CarSimulator simulator = new CarSimulator();
+        new Thread(simulator).start();
+        double val;
+        //calculate using old values
+        for (int i = 0; i <= 3; i++) {
+            long stop=System.nanoTime()+TimeUnit.SECONDS.toNanos(2+i);
+            while(stop > System.nanoTime()){
+                error = sp - simulator.getSpeed();
+                integral += error;
+                derivative = (error-old_error) / dt;
+                val = kp * error + kd * derivative + ki * integral;
+                simulator.setAcceleration(val);
+                old_error = error;
+                System.out.printf("error: %f\n", error);
+            }
         }
-        return error_rate;
+
+
     }
 
-    /**
-     * Specifies the layers training output
-     *
-     * @param trainingOutput array containing the training output
-     */
-    public void setTrainingOutput(double[] trainingOutput) {
-        this.trainingOutput = trainingOutput;
+    public void set_old_params(double kp, double ki, double kd) {
+        this.kp = kp;
+        this.ki = ki;
+        this.kd = kd;
     }
-
 
 }
