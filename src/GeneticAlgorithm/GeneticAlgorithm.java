@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class GeneticAlgorithm {
-    static final double MUTATION_RATE = 0.01;
+    static final double MUTATION_RATE = 0.08;
     private int popSize;
     private DNA[] population;
     private ArrayList<DNA> matingPool = new ArrayList<>();
@@ -60,7 +60,7 @@ public class GeneticAlgorithm {
         for (int i = 0; i < population.length; i++) {
             n = rnd.nextInt(matingPool.size());
             k = rnd.nextInt(matingPool.size());
-            population[i] = matingPool.get(n).crossOver(matingPool.get(k));
+            population[i] = matingPool.get(n).crossOver(matingPool.get(k))[0];
         }
     }
 

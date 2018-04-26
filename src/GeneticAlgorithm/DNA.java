@@ -23,13 +23,9 @@ public class DNA {
 
     public DNA() {
         Random r = new Random();
-        /*for (int i = 0; i < genes.length; i++) {
-            Random r = new Random();
-            genes[i] = 5.0 * r.nextDouble();
-        }*/
         genes[0] = 10.0 * r.nextDouble();
-        genes[1] = 0;
-        genes[2] = 0;
+        genes[1] = 5.0 * r.nextDouble();
+        genes[2] = 5.0 * r.nextDouble();
         this.phenotype = getPhenotype();
         this.fitness = calculateFitness(this);
         System.out.printf("DNA PIDParams: %f, %f, %f with fitness %f\n", genes[0], genes[1], genes[2], this.fitness);
@@ -47,56 +43,77 @@ public class DNA {
             double old_error = 0;
             double integral = 0;
             double derivative;
-            double dt = 0.001;
+            double dt = 0.1;
             double val;
-            int sp = 5;
+            int sp = 50;
             CarSimulator simulator = new CarSimulator();
             new Thread(simulator).start();
-            long stop = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
-            while (stop > System.nanoTime()){
+            long stop = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
+            int n = 0;
+            double mse = 0;
+            while (stop > System.nanoTime()) {
+                try {
+                    Thread.sleep(5);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 error = sp - simulator.getSpeed();
+                //System.out.println("error: " + error);
+                mse += Math.pow(error, 2);
+                n++;
+                //System.out.println("mse: " + mse);
                 integral = integral + (error * dt);
-                absErr.setAbsErr(absErr.getAbsErr() + (error * dt));
+                //System.out.println("integral" + integral);
                 derivative = (error - old_error) / dt;
+                //System.out.println("derivative " + derivative);
                 val = dna.genes[0] * error + dna.genes[1] * derivative + dna.genes[2] * integral;
+                //System.out.println("val: " + val);
                 simulator.setAcceleration(val);
                 old_error = error;
             }
+            absErr.setAbsErr(mse);
             simulator.stop();
         }).start();
         try {
-            Thread.sleep(6000);
+            Thread.sleep(2500);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        absErr.setAbsErr(Math.abs(absErr.getAbsErr()));
-        System.out.println("absError: " + absErr.getAbsErr());
-        if (absErr.getAbsErr() == 0.5) System.out.println("defaulted!");
-//        absErr.setAbsErr(absErr.getAbsErr() / 10000);
         if (absErr.getAbsErr() < 1) return 1;
-        double delta =  Math.abs(1 / absErr.getAbsErr());
-        if (delta > 1) return 1;
-        return delta * 10;
+        double max = 1E3;
+        if (absErr.getAbsErr() > 1E3) max = absErr.getAbsErr();
+        return 1 - Math.abs(absErr.getAbsErr() / 50000) < 0 ? 0 : 1 - Math.abs(absErr.getAbsErr() / 50000);
     }
 
     /**
      * mix this DNA with genA.
      * Calculates the mean of the PID
      * params
+     *
      * @param genA
      * @return the child DNA
      */
-    public DNA crossOver(DNA genA) {
-        double n_KP = (genA.genes[0] + this.genes[0]) / 2;
-        double n_KD = 0;//(genA.genes[1] + this.genes[1]) / 2;
-        double n_KI = 0;//(genA.genes[2] + this.genes[2]) / 2;
+    public DNA[] crossOver(DNA genA) {
+        double alpha = 0.8;
+        double n_KP = alpha * genA.genes[0] + (1 - alpha) * this.genes[0];
+        double n_KD = alpha * genA.genes[1] + (1 - alpha) * this.genes[1];
+        double n_KI = alpha * genA.genes[2] + (1 - alpha) * this.genes[2];
 
-        DNA child = new DNA(new PIDParams(n_KP, n_KD, n_KI));
-        return mutate(child);
+        DNA child1 = new DNA(new PIDParams(n_KP, n_KD, n_KI));
+
+        double n_KP2 = alpha * this.genes[0] + (1 - alpha) * genA.genes[0];
+        double n_KD2 = alpha * this.genes[1] + (1 - alpha) * genA.genes[1];
+        double n_KI2 = alpha * this.genes[2] + (1 - alpha) * genA.genes[2];
+
+        DNA child2 = new DNA(new PIDParams(n_KP2, n_KD2, n_KI2));
+        mutate(child1);
+        mutate(child2);
+        return new DNA[]{child1, child2};
     }
 
     /**
      * slightly mutates a given DNA
+     *
      * @param child
      * @return
      */
