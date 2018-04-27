@@ -1,7 +1,6 @@
 import CarSimulator.CarSimulator;
-import GeneticAlgorithm.GeneticAlgorithm;
-import GeneticAlgorithm.AbsErr;
 import Jama.Matrix;
+import ParticleSwarmOptimizer.ParticleSwarmOptimizer;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -9,23 +8,23 @@ import java.util.concurrent.TimeUnit;
 
 public class Main {
     public static void main(String[] args) {
-        GeneticAlgorithm genAlg = new GeneticAlgorithm(12, 10);
+        ParticleSwarmOptimizer pso = new ParticleSwarmOptimizer(10);
         /*double error;
         double old_error = 0;
         double integral = 0;
         double derivative;
-        double dt = 0.1;
+        double dt = 0.02;
         double val;
-        int sp = 100;
+        int sp = 50;
         CarSimulator simulator = new CarSimulator();
         new Thread(simulator).start();
-        long stop = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
+        long stop = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
         int n = 0;
         double mse = 0;
         ArrayList<Double> speedTable = new ArrayList<>();
         while (stop > System.nanoTime()) {
             try {
-                Thread.sleep(5);
+                Thread.sleep(2);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -39,9 +38,9 @@ public class Main {
             //System.out.println("integral" + integral);
             derivative = (error - old_error) / dt;
             //System.out.println("derivative " + derivative);
-            val = 6.4997683706037535 * error + 1.0778259947417705 * derivative + 1.7231595098541748 * integral;
+            val = 8.607930653754462 * error + 0.22714051907477772 * derivative + 4.163634243740372 * integral;
             //System.out.println("val: " + val);
-            simulator.setAcceleration(val);
+            simulator.setAcceleration(val > 10 ? 10 : val);
             old_error = error;
             System.out.println("error: " + error);
         }

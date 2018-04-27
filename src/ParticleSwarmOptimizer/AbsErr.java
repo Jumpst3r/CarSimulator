@@ -1,4 +1,4 @@
-package GeneticAlgorithm;
+package ParticleSwarmOptimizer;
 
 public class AbsErr {
     private double absErr;

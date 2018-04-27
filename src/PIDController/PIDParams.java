@@ -7,6 +7,7 @@ public class PIDParams {
     private double KP;
     private double KD;
     private double KI;
+    private volatile double value;
 
     public PIDParams(double KP, double KD, double KI) {
         this.KP = KP;
@@ -46,6 +47,14 @@ public class PIDParams {
 
     public void setKI(double KI) {
         this.KI = KI;
+    }
+
+    public double getValue() {
+        return value;
+    }
+
+    public synchronized void setValue(double value) {
+        this.value = value;
     }
 
     @Override
