@@ -1,11 +1,16 @@
 package ParticleSwarmOptimizer;
 
+import GUI.Controller;
 import PIDController.PIDParams;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 
-public class ParticleSwarmOptimizer {
+public class ParticleSwarmOptimizer implements Runnable{
     /**
      * the number of particles in the swarm
      */
@@ -14,7 +19,7 @@ public class ParticleSwarmOptimizer {
      * the upper bound for the parameter space.
      * (ie assume K_p,d,i <= 10)
      */
-    private final int upperBound = 100;
+    private final int upperBound = 2;
 
     /**
      * The lower bound for the parameter space
@@ -30,113 +35,53 @@ public class ParticleSwarmOptimizer {
      * describes how strongly a particle moves towards
      * its best known position
      */
-    static final double W_LOCAL = 2;
+    static final double W_LOCAL = 1.6;
 
     /**
      * describes how strongly a particles moves towards
      * the swarm's optimum
      */
-    static final double W_GLOBAL = 2;
+    static final double W_GLOBAL = 1.4;
 
     /**
      * describes the particles inertia
      */
     static final double INERTIA = 0.729;
 
+    private boolean continue_condition = true;
+
     private Particle[] particles;
 
     public ParticleSwarmOptimizer(int nbOfParticles) {
         this.nbOfParticles = nbOfParticles;
         this.particles = new Particle[nbOfParticles];
+        this.swarmOptimum = new PIDParams(Double.POSITIVE_INFINITY);
         initParticles();
-        Thread[] threads = new Thread[nbOfParticles];
-        while (true) {
-            CountDownLatch countDownLatch = new CountDownLatch(nbOfParticles - 1);
-            new Thread(() -> {
-                Particle particle = particles[0];
-                particle.eval();
-                particle.updatePosition();
-                System.out.println("updated position of particle " + 0);
-                //System.out.println("best pid params of particle " + 0 + particle.getBestKnownParams().getValue());
-                countDownLatch.countDown();
-            }).start();
-            new Thread(() -> {
-                Particle particle = particles[1];
-                particle.eval();
-                particle.updatePosition();
-                System.out.println("updated position of particle " + 1);
-                //System.out.println("best pid params of particle " + 1 + particle.getBestKnownParams().getValue());
-                countDownLatch.countDown();
-            }).start();
-            new Thread(() -> {
-                Particle particle = particles[2];
-                particle.eval();
-                particle.updatePosition();
-                System.out.println("updated position of particle " + 2);
-                //System.out.println("best pid params of particle " + 2 + particle.getBestKnownParams().getValue());
-                countDownLatch.countDown();
-            }).start();
-            new Thread(() -> {
-                Particle particle = particles[3];
-                particle.eval();
-                particle.updatePosition();
-                System.out.println("updated position of particle " + 3);
-                //System.out.println("best pid params of particle " + 3 + particle.getBestKnownParams().getValue());
-                countDownLatch.countDown();
-            }).start();
-            new Thread(() -> {
-                Particle particle = particles[4];
-                particle.eval();
-                particle.updatePosition();
-                System.out.println("updated position of particle " + 4);
-                //System.out.println("best pid params of particle " + 4 + particle.getBestKnownParams().getValue());
-                countDownLatch.countDown();
-            }).start();
-            new Thread(() -> {
-                Particle particle = particles[5];
-                particle.eval();
-                particle.updatePosition();
-                System.out.println("updated position of particle " + 5);
-                //System.out.println("best pid params of particle " + 5 + particle.getBestKnownParams().getValue());
-                countDownLatch.countDown();
-            }).start();
-            new Thread(() -> {
-                Particle particle = particles[6];
-                particle.eval();
-                particle.updatePosition();
-                System.out.println("updated position of particle " + 6);
-                //System.out.println("best pid params of particle " + 6 + particle.getBestKnownParams().getValue());
-                countDownLatch.countDown();
-            }).start();
-            new Thread(() -> {
-                Particle particle = particles[7];
-                particle.eval();
-                particle.updatePosition();
-                System.out.println("updated position of particle " + 7);
-                //System.out.println("best pid params of particle " + 7 + particle.getBestKnownParams().getValue());
-                countDownLatch.countDown();
-            }).start();
-            new Thread(() -> {
-                Particle particle = particles[8];
-                particle.eval();
-                particle.updatePosition();
-                System.out.println("updated position of particle " + 8);
-                //System.out.println("best pid params of particle " + 8 + particle.getBestKnownParams().getValue());
-            }).start();
-            new Thread(() -> {
-                Particle particle = particles[9];
-                particle.eval();
-                particle.updatePosition();
-                System.out.println("updated position of particle " + 9);
-                //System.out.println("best pid params of particle " + 9 + particle.getBestKnownParams().getValue());
-                countDownLatch.countDown();
-            }).start();
-            try {
-                countDownLatch.await();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+    }
+
+    private void writeSwarmStatistics() {
+        File file = new File("swarm_stats.csv");
+        BufferedWriter bf = null;
+        try {
+            bf = new BufferedWriter(new FileWriter(file));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        for (Particle particle : particles) {
+                for (String stats: particle.getSwarmStats()){
+                    try {
+                        bf.write(stats);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
-            System.out.println("swarm optimum: " + swarmOptimum.toString() + " value: " + swarmOptimum.getValue());
+        try {
+            if (bf != null) {
+                bf.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -168,7 +113,7 @@ public class ParticleSwarmOptimizer {
         return lowerBound;
     }
 
-    synchronized PIDParams getSwarmOptimum() {
+    public synchronized PIDParams getSwarmOptimum() {
         return swarmOptimum;
     }
 
@@ -185,4 +130,26 @@ public class ParticleSwarmOptimizer {
         }
     }
 
+    public boolean isContinue_condition() {
+        return continue_condition;
+    }
+
+    @Override
+    public void run() {
+        while (continue_condition) {
+            CountDownLatch countDownLatch = new CountDownLatch(nbOfParticles - 1);
+            for (Particle particle : particles) {
+                new Thread(() -> {
+                    particle.eval();
+                    particle.updatePosition();
+                    countDownLatch.countDown();
+                }).start();
+            }
+            try {
+                countDownLatch.await();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }

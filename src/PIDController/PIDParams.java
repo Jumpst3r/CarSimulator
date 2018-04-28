@@ -1,5 +1,7 @@
 package PIDController;
 
+import java.text.DecimalFormat;
+
 /**
  * Represents a PID parameter configuration
  */
@@ -8,6 +10,10 @@ public class PIDParams {
     private double KD;
     private double KI;
     private volatile double value;
+
+    public PIDParams(double value) {
+        this.value = value;
+    }
 
     public PIDParams(double KP, double KD, double KI) {
         this.KP = KP;
@@ -59,6 +65,12 @@ public class PIDParams {
 
     @Override
     public String toString() {
-        return "KP: " + KP + " KD: " + KD + " KI: " + KI;
+        DecimalFormat format = new DecimalFormat("##.000");
+
+        return "KP: " + format.format(KP) + " KD: " + format.format(KD) + " KI: " + format.format(KI);
+    }
+
+    public boolean equals_pid(PIDParams o) {
+        return (this.getKP() == o.getKP() && this.getKD() == o.getKD() && this.getKI() == o.getKI());
     }
 }
