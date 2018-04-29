@@ -1,24 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.*?>
+<?import javafx.scene.paint.*?>
+<?import javafx.scene.effect.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.shape.*?>
 <?import javafx.scene.chart.*?>
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane prefHeight="665.0" prefWidth="1097.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane prefHeight="665.0" prefWidth="1097.0" style="-fx-background-color: WHITE;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
    <children>
-      <LineChart fx:id="pid_chart" animated="false" createSymbols="false" prefHeight="400.0" prefWidth="1100.0" title="Car Velocity">
+      <LineChart fx:id="pid_chart" createSymbols="false" prefHeight="400.0" prefWidth="1100.0" title="Car Velocity" verticalGridLinesVisible="false">
         <xAxis>
           <NumberAxis animated="false" autoRanging="false" forceZeroInRange="false" minorTickVisible="false" prefHeight="0.0" prefWidth="1095.0" side="BOTTOM" tickLabelsVisible="false" tickMarkVisible="false" fx:id="x_axis" />
         </xAxis>
         <yAxis>
-          <NumberAxis fx:id="y_axis" side="LEFT" />
+          <NumberAxis fx:id="y_axis" autoRanging="false" label="m/s" lowerBound="-10.0" minorTickCount="10" side="LEFT" tickLabelFill="#756868" upperBound="50.0" />
         </yAxis>
+         <cursor>
+            <Cursor fx:constant="CROSSHAIR" />
+         </cursor>
       </LineChart>
       <Separator layoutX="14.0" layoutY="391.0" prefHeight="28.0" prefWidth="1086.0" />
       <Label layoutX="35.0" layoutY="419.0" text="Car desired speed (m/s)" />
-      <Slider fx:id="sp_slider" blockIncrement="1.0" layoutX="25.0" layoutY="447.0" max="50.0" prefHeight="38.0" prefWidth="176.0" showTickLabels="true" showTickMarks="true" value="10.0" />
+      <Slider fx:id="sp_slider" blockIncrement="1.0" layoutX="25.0" layoutY="447.0" majorTickUnit="10.0" max="50.0" prefHeight="38.0" prefWidth="176.0" showTickLabels="true" showTickMarks="true" value="10.0" />
       <Separator layoutX="406.0" layoutY="405.0" orientation="VERTICAL" prefHeight="260.0" prefWidth="26.0" />
       <CheckBox fx:id="adv_ctrl" layoutX="242.0" layoutY="418.0" mnemonicParsing="false" text="Advanced Controls" />
       <Label layoutX="242.0" layoutY="447.0" text="KP" />
@@ -31,8 +37,9 @@
       <Button fx:id="reset_btn" layoutX="244.0" layoutY="549.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="147.0" text="Reset" />
       <Separator layoutX="201.0" layoutY="406.0" orientation="VERTICAL" prefHeight="260.0" prefWidth="26.0" />
       <Label layoutX="438.0" layoutY="419.0" text="Particle Swarm Optimizer (PSO)" />
-      <TextArea fx:id="console0" layoutX="438.0" layoutY="449.0" prefHeight="200.0" prefWidth="639.0" />
-      <Button fx:id="start_pso" layoutX="660.0" layoutY="414.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="142.0" text="start optimization" />
-      <Button fx:id="stop_pso" layoutX="809.0" layoutY="414.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="157.0" text="stop optimization" />
+      <TextArea fx:id="console0" editable="false" layoutX="438.0" layoutY="449.0" prefHeight="200.0" prefWidth="639.0" promptText="PSO algorithm not running." />
+      <Button fx:id="start_pso" layoutX="660.0" layoutY="414.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="142.0" style="-fx-background-color: LIGHTGREEN;" text="start optimization" />
+      <Button fx:id="stop_pso" layoutX="809.0" layoutY="414.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="157.0" style="-fx-background-color: red;" text="stop optimization" />
+      <CheckBox fx:id="rnd_speed" layoutX="25.0" layoutY="492.0" mnemonicParsing="false" text="Randomize speed" />
    </children>
 </AnchorPane>

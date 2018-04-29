@@ -56,6 +56,19 @@ public class ParticleSwarmOptimizer implements Runnable{
         this.nbOfParticles = nbOfParticles;
         this.particles = new Particle[nbOfParticles];
         this.swarmOptimum = new PIDParams(Double.POSITIVE_INFINITY);
+        try {
+            Controller.CONSOLE.write("====================================================\n");
+            Controller.CONSOLE.write("starting swarm optimization with following params: \n");
+            Controller.CONSOLE.write("\tnbOfParticles:\t\t\t\t10 \n");
+            Controller.CONSOLE.write("\tparamter search space:\t\t["+lowerBound+","+upperBound+"]³ \n");
+            Controller.CONSOLE.write("\tparticle inertia:\t\t\t"+INERTIA+" \n");
+            Controller.CONSOLE.write("\tsocial weight:\t\t\t\t"+W_GLOBAL+" \n");
+            Controller.CONSOLE.write("\tcognitive weight:\t\t\t"+W_LOCAL+" \n");
+            Controller.CONSOLE.write("====================================================\n");
+            Thread.sleep(200);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
         initParticles();
     }
 
@@ -88,7 +101,11 @@ public class ParticleSwarmOptimizer implements Runnable{
     private void initParticles() {
         for (int i = 0; i < this.nbOfParticles; i++) {
             particles[i] = new Particle(this);
-            System.out.println("initialized particle " + i);
+            try {
+                Controller.CONSOLE.write("initialized particle " + i + "\n","info");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -127,11 +144,20 @@ public class ParticleSwarmOptimizer implements Runnable{
             PIDParams swarm_optimum = new PIDParams(particle.getKP(), particle.getKD(), particle.getKI());
             swarm_optimum.setValue(particle.getValue());
             setSwarmOptimum(swarm_optimum);
+            try {
+                Controller.CONSOLE.write("New swarm optimum found: " + swarm_optimum.toString() + " mse: " + swarm_optimum.getValue() + "\n", "info");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
     public boolean isContinue_condition() {
         return continue_condition;
+    }
+
+    public void setContinue_condition(boolean continue_condition) {
+        this.continue_condition = continue_condition;
     }
 
     @Override

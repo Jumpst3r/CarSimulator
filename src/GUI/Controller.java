@@ -4,6 +4,7 @@ import PIDController.PIDController;
 import PIDController.PIDParams;
 import ParticleSwarmOptimizer.ParticleSwarmOptimizer;
 import javafx.animation.AnimationTimer;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.chart.LineChart;
@@ -11,11 +12,15 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URL;
+import java.util.Random;
 import java.util.ResourceBundle;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Controller implements Initializable {
 
@@ -28,8 +33,9 @@ public class Controller implements Initializable {
     private ConcurrentLinkedQueue<Number> dataQ1 = new ConcurrentLinkedQueue<>();
     private ConcurrentLinkedQueue<Number> dataQ2 = new ConcurrentLinkedQueue<>();
     private ConcurrentLinkedQueue<Number> dataQ3 = new ConcurrentLinkedQueue<>();
-
+    public static Console CONSOLE;
     private PIDController pidController;
+    private ParticleSwarmOptimizer pso;
 
 
     @FXML
@@ -71,12 +77,16 @@ public class Controller implements Initializable {
     @FXML
     private TextArea console0;
 
+    @FXML
+    private CheckBox rnd_speed;
+
     public void updateConsole(String str) {
         console0.setText(console0.getText() + str);
     }
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        CONSOLE = new Console(console0);
         pidController = new PIDController(new PIDParams(5.5958884831108175, 0.18911251211841631, 0.001709275613215766), 20);
         pidController.setSp(sp_slider.getValue());
         new Thread(pidController).start();
@@ -149,35 +159,61 @@ public class Controller implements Initializable {
         });
 
         stop_pso.setDisable(true);
-
         start_pso.setOnAction(actionEvent -> {
-            Alert alert = new Alert(Alert.AlertType.WARNING,
+            Alert alert = new Alert(Alert.AlertType.INFORMATION,
                     "",
                     ButtonType.YES,
                     ButtonType.NO,
                     ButtonType.CANCEL);
-            Label label = new Label("The PSO algorithm is multi-threaded and will only work\nwell on a multicore (>5) machine. Your machine may become unresponsive. Continue?");
+            Label label = new Label("The PSO algorithm will now try to find optimal parameters. After each generation,\n" +
+                    "the optimal solutions will be applied to the PID controller to visualize progress.\n Due to the heuristic" +
+                    " nature of the algorithm, it is not guaranteed that an optimal solution will be found.\n In that case restart" +
+                    " the algorithm. Proceed?");
             label.setWrapText(true);
             alert.getDialogPane().setContent(label);
             alert.showAndWait();
 
             if (alert.getResult() == ButtonType.YES) {
-                ParticleSwarmOptimizer pso = new ParticleSwarmOptimizer(10);
+                rnd_speed.setSelected(true);
+                pso = new ParticleSwarmOptimizer(10);
                 new Thread(pso).start();
                 new Thread(() -> {
-                    PIDParams oldOptimum = new PIDParams(0,0,0);
+                    start_pso.setDisable(true);
+                    stop_pso.setDisable(false);
+                    PIDParams old_params = new PIDParams(0, 0, 0);
                     while(pso.isContinue_condition()){
-                        PIDParams swarmOptimum = pso.getSwarmOptimum();
                         pidController.setPidParams(pso.getSwarmOptimum());
-                        if (!swarmOptimum.equals(oldOptimum)) {
-                            updateConsole("new swam optimum found: " + swarmOptimum.toString() + "\n");
-                            oldOptimum = swarmOptimum;
+                        if (!old_params.equals_pid(pso.getSwarmOptimum())) {
+                            kp_user_in.setText(String.valueOf(pso.getSwarmOptimum().getKP()));
+                            kd_user_in.setText(String.valueOf(String.valueOf(pso.getSwarmOptimum().getKD())));
+                            ki_user_in.setText(String.valueOf(String.valueOf(pso.getSwarmOptimum().getKI())));
+                            old_params = new PIDParams(pso.getSwarmOptimum().getKP(), pso.getSwarmOptimum().getKD(), pso.getSwarmOptimum().getKI());
                         }
                     }
 
                 }).start();
             }
         });
+        Runnable a = new speedRandomizerThread();
+        stop_pso.setOnAction(actionEvent -> {
+            pso.setContinue_condition(false);
+            stop_pso.setDisable(true);
+            start_pso.setDisable(false);
+            rnd_speed.setSelected(false);
+        });
+        Thread speed_randomizer = new Thread(a);
+        rnd_speed.selectedProperty().addListener((observableValue, number, t1)->{
+            if (rnd_speed.isSelected()) {
+                sp_slider.setDisable(true);
+                speed_randomizer.start();
+            }
+            if (!rnd_speed.isSelected()) {
+                sp_slider.setDisable(false);
+                speed_randomizer.interrupt();
+            }
+        });
+
+
 
     }
 
@@ -225,6 +261,68 @@ public class Controller implements Initializable {
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
+        }
+    }
+
+    public static class Console extends OutputStream {
+
+        private TextArea output;
+
+        Console(TextArea textArea) {
+            this.output = textArea;
+        }
+
+        @Override
+        public void write(int i) throws IOException {
+            Platform.runLater(()-> output.appendText(String.valueOf((char) i)));
+        }
+
+        public void write(String str, String lvl) throws IOException {
+
+            if (lvl.compareTo("info") == 0) str = "[INFO]\t" + str;
+            if (lvl.compareTo("warning") == 0) str = "[WARNING]\t" + str;
+            for (char c: str.toCharArray()) {
+                write(c);
+            }
+        }
+
+        public void write(String str) throws IOException {
+            for (char c: str.toCharArray()) {
+                write(c);
+            }
+        }
+    }
+
+    private class speedRandomizerThread implements Runnable{
+
+        private Thread thread;
+
+        speedRandomizerThread() {
+            if (thread == null) {
+                thread = new Thread(() -> {
+                    while (true) {
+                        if (rnd_speed.isSelected()) {
+                            Random rnd = new Random();
+                            try {
+                                Thread.sleep((long) (400 + rnd.nextDouble() * 4000));
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            int randomNum = ThreadLocalRandom.current().nextInt(0, 50);
+                            pidController.setSp(randomNum);
+                        }
+                    }
+                });
+            }
+        }
+
+        @Override
+        public void run() {
+            thread.start();
+        }
+
+        public void stop() {
+            thread.interrupt();
         }
     }
 }

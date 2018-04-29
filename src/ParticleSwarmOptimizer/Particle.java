@@ -3,7 +3,6 @@ package ParticleSwarmOptimizer;
 import PIDController.PIDParams;
 
 import java.util.ArrayList;
-import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import CarSimulator.CarSimulator;
@@ -42,10 +41,13 @@ public class Particle {
     private int n = 0;
 
     public Particle(ParticleSwarmOptimizer pso) {
-        double kp_init = pso.unifgen(-pso.getUpperBound(), pso.getUpperBound());
-        double kd_init = pso.unifgen(-pso.getUpperBound(), pso.getUpperBound());
-        double ki_init = pso.unifgen(-pso.getUpperBound(), pso.getUpperBound());
-
+        //assign random positions and velocities for each particle
+        double kp_init = pso.unifgen(pso.getLowerBound(), pso.getUpperBound());
+        double kd_init = pso.unifgen(pso.getLowerBound(), pso.getUpperBound());
+        double ki_init = pso.unifgen(pso.getLowerBound(), pso.getUpperBound());
+        for (int i = 0; i < 3; i++) {
+            this.velocity[i] = pso.unifgen(Math.abs(-pso.getUpperBound() - pso.getLowerBound()), Math.abs(pso.getUpperBound() - pso.getLowerBound()));
+        }
         this.location = new PIDParams(kp_init, kd_init, ki_init);
         this.bestKnownParams = this.location;
         this.pso = pso;
@@ -61,29 +63,31 @@ public class Particle {
             double integral = 0;
             double derivative;
             double val;
-            int sp = 20;
+            int sp = 10;
             CarSimulator simulator = new CarSimulator();
             new Thread(simulator).start();
             double mse = 0;
             long nanoTime_old = System.nanoTime();
-            long stop = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
-            int n = 0;
+            int k = 0;
+            long stop = System.nanoTime() + TimeUnit.SECONDS.toNanos(20);
             while (stop > System.nanoTime()) {
+                if (k++ == 50) {
+                    sp+= 5;
+                }
+                if (k++ == 100) {
+                    sp-= 5;
+                }
                 try {
-                    Thread.sleep(100);
+                    Thread.sleep(50);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
                 long nanoTime = System.nanoTime();
-                double dt = (nanoTime - nanoTime_old)/1E9 + 100;
+                double dt = (nanoTime - nanoTime_old)/1E9;
                 error = sp - simulator.getSpeed();
-                //System.out.println("error: " + error);
                 mse += Math.pow(error, 2);
-                //System.out.println("mse: " + mse);
                 integral = integral + (error * dt);
-                //System.out.println("integral" + integral);
                 derivative = (error - old_error) / dt;
-                //System.out.println("derivative " + derivative);
                 val = location.getKP() * error + location.getKD() * derivative + location.getKI() * integral;
                 //System.out.println("val: " + val);
                 if (val > 6) val = 6;
@@ -114,7 +118,7 @@ public class Particle {
         n++;
     }
 
-    public void updatePosition() {
+    void updatePosition() {
         double new_pos[] = new double[3];
         for (int i = 0; i < 3; i++) {
             double rp = pso.unifgen(0, 1);
@@ -136,7 +140,7 @@ public class Particle {
         return bestKnownParams;
     }
 
-    public ArrayList<String> getSwarmStats() {
+    ArrayList<String> getSwarmStats() {
         return swarmStats;
     }
 }
