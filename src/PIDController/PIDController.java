@@ -23,8 +23,10 @@ public class PIDController implements Runnable{
 
     @Override
     public void run() {
-        double error;
-        double old_error = 0;
+        double s_error;
+        double a_error;
+        double s_old_error = 0;
+        double a_old_error = 0;
         double integral = 0;
         double derivative;
         double val;
@@ -35,27 +37,29 @@ public class PIDController implements Runnable{
         long k = 0;
         while (true) {
             try {
-                Thread.sleep(50);
+                Thread.sleep(60);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
             long nanoTime = System.nanoTime();
             double iteration_time = (nanoTime - nanoTime_old)/1E9;
-            error = sp - simulator.getSpeed();
+            s_error = sp - simulator.getSpeed();
+            a_error = s_error / iteration_time;
             //System.out.println("mse: " + mse);
-            integral = integral + (error * iteration_time);
+            integral = integral + (a_error * iteration_time);
             //System.out.println("integral" + integral);
-            derivative = (error - old_error) / iteration_time;
+            derivative = (a_error - a_old_error) / iteration_time;
             //val = 3.9074321196717205 * error + 0.0061901094526276845 * derivative + 0.009132475994355075 * integral;
-            val = pidParams.getKP() * error + pidParams.getKD() * derivative + pidParams.getKI() * integral;
+            val = pidParams.getKP() * a_error + pidParams.getKD() * derivative + pidParams.getKI() * integral;
             if (limAcc) {
                 if (val > 6) val = 6;
                 if (val < -6) val = -6;
             }
             simulator.setAcceleration(val);
-            this.currentError = error;
+            this.currentError = s_error;
             this.currentSpeed = simulator.getSpeed();
-            old_error = error;
+            s_old_error = s_error;
+            a_old_error = a_error;
             nanoTime_old = System.nanoTime();
             k++;
         }

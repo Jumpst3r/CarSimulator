@@ -80,6 +80,9 @@ public class Controller implements Initializable {
     @FXML
     private CheckBox rnd_speed;
 
+    @FXML
+    private Label speed_lbl;
+
     public void updateConsole(String str) {
         console0.setText(console0.getText() + str);
     }
@@ -157,7 +160,8 @@ public class Controller implements Initializable {
             kd_user_in.setText(String.valueOf(pidController.getPidParams().getKD()));
             ki_user_in.setText(String.valueOf(pidController.getPidParams().getKI()));
         });
-
+        Runnable a = new speedRandomizerThread();
+        Thread speed_randomizer = new Thread(a);
         stop_pso.setDisable(true);
         start_pso.setOnAction(actionEvent -> {
             Alert alert = new Alert(Alert.AlertType.INFORMATION,
@@ -194,14 +198,12 @@ public class Controller implements Initializable {
                 }).start();
             }
         });
-        Runnable a = new speedRandomizerThread();
         stop_pso.setOnAction(actionEvent -> {
             pso.setContinue_condition(false);
             stop_pso.setDisable(true);
             start_pso.setDisable(false);
             rnd_speed.setSelected(false);
         });
-        Thread speed_randomizer = new Thread(a);
         rnd_speed.selectedProperty().addListener((observableValue, number, t1)->{
             if (rnd_speed.isSelected()) {
                 sp_slider.setDisable(true);
@@ -222,6 +224,7 @@ public class Controller implements Initializable {
             @Override
             public void handle(long now) {
                 addDataToSeries();
+                speed_lbl.setText("" + (int) pidController.getCurrentSpeed() + "m/s");
             }
         }.start();
     }
@@ -243,7 +246,6 @@ public class Controller implements Initializable {
         if (series3.getData().size() > MAX_DATA_POINTS) {
             series3.getData().remove(0, series3.getData().size() - MAX_DATA_POINTS);
         }
-        // update
         x_axis.setLowerBound(xSeriesData - MAX_DATA_POINTS);
         x_axis.setUpperBound(xSeriesData - 1);
     }
@@ -256,7 +258,7 @@ public class Controller implements Initializable {
                 dataQ1.add(pidController.getSp());
                 dataQ2.add(pidController.getCurrentSpeed());
                 dataQ3.add(pidController.getCurrentError());
-                Thread.sleep(50);
+                Thread.sleep(60);
                 executor.execute(this);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
@@ -310,6 +312,7 @@ public class Controller implements Initializable {
                             }
                             int randomNum = ThreadLocalRandom.current().nextInt(0, 50);
                             pidController.setSp(randomNum);
+                            sp_slider.setValue(randomNum);
                         }
                     }
                 });

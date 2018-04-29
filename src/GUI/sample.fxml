@@ -11,12 +11,12 @@
 
 <AnchorPane prefHeight="665.0" prefWidth="1097.0" style="-fx-background-color: WHITE;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
    <children>
-      <LineChart fx:id="pid_chart" createSymbols="false" prefHeight="400.0" prefWidth="1100.0" title="Car Velocity" verticalGridLinesVisible="false">
+      <LineChart fx:id="pid_chart" alternativeRowFillVisible="false" createSymbols="false" prefHeight="400.0" prefWidth="1100.0" title="Car Velocity" verticalGridLinesVisible="false">
         <xAxis>
-          <NumberAxis animated="false" autoRanging="false" forceZeroInRange="false" minorTickVisible="false" prefHeight="0.0" prefWidth="1095.0" side="BOTTOM" tickLabelsVisible="false" tickMarkVisible="false" fx:id="x_axis" />
+          <NumberAxis animated="false" autoRanging="false" forceZeroInRange="false" minorTickVisible="false" prefHeight="32.0" prefWidth="1023.0" side="BOTTOM" tickLabelsVisible="false" tickMarkVisible="false" fx:id="x_axis" />
         </xAxis>
         <yAxis>
-          <NumberAxis fx:id="y_axis" autoRanging="false" label="m/s" lowerBound="-10.0" minorTickCount="10" side="LEFT" tickLabelFill="#756868" upperBound="50.0" />
+          <NumberAxis fx:id="y_axis" animated="false" label="m/s" lowerBound="-10.0" minorTickCount="10" side="LEFT" tickLabelFill="#756868" upperBound="50.0" />
         </yAxis>
          <cursor>
             <Cursor fx:constant="CROSSHAIR" />
@@ -41,5 +41,7 @@
       <Button fx:id="start_pso" layoutX="660.0" layoutY="414.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="142.0" style="-fx-background-color: LIGHTGREEN;" text="start optimization" />
       <Button fx:id="stop_pso" layoutX="809.0" layoutY="414.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="157.0" style="-fx-background-color: red;" text="stop optimization" />
       <CheckBox fx:id="rnd_speed" layoutX="25.0" layoutY="492.0" mnemonicParsing="false" text="Randomize speed" />
+      <Label layoutX="918.0" layoutY="50.0" text="current speed:" />
+      <Label fx:id="speed_lbl" layoutX="1024.0" layoutY="50.0" prefHeight="15.0" prefWidth="53.0" />
    </children>
 </AnchorPane>

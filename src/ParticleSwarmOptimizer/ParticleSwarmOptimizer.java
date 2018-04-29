@@ -19,7 +19,7 @@ public class ParticleSwarmOptimizer implements Runnable{
      * the upper bound for the parameter space.
      * (ie assume K_p,d,i <= 10)
      */
-    private final int upperBound = 2;
+    private final int upperBound = 20;
 
     /**
      * The lower bound for the parameter space
@@ -35,13 +35,13 @@ public class ParticleSwarmOptimizer implements Runnable{
      * describes how strongly a particle moves towards
      * its best known position
      */
-    static final double W_LOCAL = 1.6;
+    static final double W_LOCAL = 2;
 
     /**
      * describes how strongly a particles moves towards
      * the swarm's optimum
      */
-    static final double W_GLOBAL = 1.4;
+    static final double W_GLOBAL = 2;
 
     /**
      * describes the particles inertia

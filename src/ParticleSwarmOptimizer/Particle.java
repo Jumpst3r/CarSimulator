@@ -58,8 +58,9 @@ public class Particle {
         //Calculate old error using old kp
         AbsErr absErr = new AbsErr(0);
         new Thread(() -> {
-            double error;
-            double old_error = 0;
+            double s_error;
+            double a_error;
+            double a_old_error = 0;
             double integral = 0;
             double derivative;
             double val;
@@ -69,34 +70,29 @@ public class Particle {
             double mse = 0;
             long nanoTime_old = System.nanoTime();
             int k = 0;
-            long stop = System.nanoTime() + TimeUnit.SECONDS.toNanos(20);
+            long stop = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
             while (stop > System.nanoTime()) {
-                if (k++ == 50) {
-                    sp+= 5;
-                }
-                if (k++ == 100) {
-                    sp-= 5;
-                }
                 try {
-                    Thread.sleep(50);
+                    Thread.sleep(60);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
                 long nanoTime = System.nanoTime();
                 double dt = (nanoTime - nanoTime_old)/1E9;
-                error = sp - simulator.getSpeed();
-                mse += Math.pow(error, 2);
-                integral = integral + (error * dt);
-                derivative = (error - old_error) / dt;
-                val = location.getKP() * error + location.getKD() * derivative + location.getKI() * integral;
-                //System.out.println("val: " + val);
+                s_error = sp - simulator.getSpeed();
+                a_error = s_error / dt;
+                mse += Math.pow(a_error, 2);
+                integral = integral + (a_error * dt);
+                derivative = (a_error - a_old_error) / dt;
+                val = location.getKP() * a_error + location.getKD() * derivative + location.getKI() * integral;
                 if (val > 6) val = 6;
                 if (val < -6) val = -6;
                 simulator.setAcceleration(val);
-                old_error = error;
+                a_old_error = a_error;
                 n++;
                 nanoTime_old = System.nanoTime();
             }
+//            if(simulator.getSpeed() < 0) mse = Double.POSITIVE_INFINITY;
             absErr.setAbsErr(mse);
             simulator.stop();
             countDownLatch.countDown();
