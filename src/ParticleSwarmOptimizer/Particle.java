@@ -70,10 +70,10 @@ public class Particle {
             double mse = 0;
             long nanoTime_old = System.nanoTime();
             int k = 0;
-            long stop = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+            long stop = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
             while (stop > System.nanoTime()) {
                 try {
-                    Thread.sleep(60);
+                    Thread.sleep(25);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

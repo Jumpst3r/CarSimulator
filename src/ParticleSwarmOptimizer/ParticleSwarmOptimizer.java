@@ -19,7 +19,7 @@ public class ParticleSwarmOptimizer implements Runnable{
      * the upper bound for the parameter space.
      * (ie assume K_p,d,i <= 10)
      */
-    private final int upperBound = 20;
+    private final int upperBound = 10;
 
     /**
      * The lower bound for the parameter space

@@ -43,6 +43,5 @@
       <CheckBox fx:id="rnd_speed" layoutX="25.0" layoutY="492.0" mnemonicParsing="false" text="Randomize speed" />
       <Label layoutX="918.0" layoutY="50.0" text="current speed:" />
       <Label fx:id="speed_lbl" layoutX="1024.0" layoutY="50.0" prefHeight="15.0" prefWidth="53.0" />
-      <CheckBox layoutX="973.0" layoutY="418.0" mnemonicParsing="false" text="Multi threaded" />
    </children>
 </AnchorPane>

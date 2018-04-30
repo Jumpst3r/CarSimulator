@@ -5,6 +5,7 @@ import PIDController.PIDParams;
 import ParticleSwarmOptimizer.ParticleSwarmOptimizer;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.chart.LineChart;
@@ -172,7 +173,8 @@ public class Controller implements Initializable {
             Label label = new Label("The PSO algorithm will now try to find optimal parameters. After each generation,\n" +
                     "the optimal solutions will be applied to the PID controller to visualize progress.\n Due to the heuristic" +
                     " nature of the algorithm, it is not guaranteed that an optimal solution will be found.\n In that case restart" +
-                    " the algorithm. Proceed?");
+                    " the algorithm. If the multi-threaded option is selected, the UI will become slow or unresponsive\n" +
+                    " but the algorithm will run much faster. Proceed?");
             label.setWrapText(true);
             alert.getDialogPane().setContent(label);
             alert.showAndWait();
@@ -180,7 +182,14 @@ public class Controller implements Initializable {
             if (alert.getResult() == ButtonType.YES) {
                 rnd_speed.setSelected(true);
                 pso = new ParticleSwarmOptimizer(10);
-                new Thread(pso).start();
+                Task pso_task = new Task() {
+                    @Override
+                    protected Object call() throws Exception {
+                        pso.run();
+                        return null;
+                    }
+                };
+                new Thread(pso_task).start();
                 new Thread(() -> {
                     start_pso.setDisable(true);
                     stop_pso.setDisable(false);
@@ -258,7 +267,7 @@ public class Controller implements Initializable {
                 dataQ1.add(pidController.getSp());
                 dataQ2.add(pidController.getCurrentSpeed());
                 dataQ3.add(pidController.getCurrentError());
-                Thread.sleep(60);
+                Thread.sleep(25);
                 executor.execute(this);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
