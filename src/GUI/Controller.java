@@ -24,8 +24,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Controller implements Initializable {
-
-    private static final int MAX_DATA_POINTS = 50;
+    /**
+     * This class regroups all UI elements. The
+     * code for the javafx linechart element is
+     * taken from https://stackoverflow.com/questions/22089022/line-chart-live-update,
+     * the post by user ItachiUchiha which consists of
+     * the functions addDataToSeries() addDataToSeries() prepareTimeline(),
+     * and the private class AddToQueue.
+     */
+    private static final int MAX_DATA_POINTS = 600;
     private int xSeriesData = 0;
     private XYChart.Series<Number, Number> series1 = new XYChart.Series<>();
     private XYChart.Series<Number, Number> series2 = new XYChart.Series<>();
@@ -35,6 +42,7 @@ public class Controller implements Initializable {
     private ConcurrentLinkedQueue<Number> dataQ2 = new ConcurrentLinkedQueue<>();
     private ConcurrentLinkedQueue<Number> dataQ3 = new ConcurrentLinkedQueue<>();
     public static Console CONSOLE;
+
     private PIDController pidController;
     private ParticleSwarmOptimizer pso;
 
@@ -83,6 +91,9 @@ public class Controller implements Initializable {
 
     @FXML
     private Label speed_lbl;
+
+    @FXML
+    private CheckBox multi_threaded_chbox;
 
     public void updateConsole(String str) {
         console0.setText(console0.getText() + str);
@@ -155,6 +166,27 @@ public class Controller implements Initializable {
                 pidController.setLimAcc(acc_lim_toggle.isSelected())
         );
 
+        multi_threaded_chbox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            if (multi_threaded_chbox.isSelected()) {
+                Alert alert = new Alert(Alert.AlertType.WARNING,
+                        "",
+                        ButtonType.YES,
+                        ButtonType.NO);
+                Label label = new Label("Enabling multithreading will run the algorithm much faster but will severely\nslow done the UI and your computer may become unresponsive.");
+                alert.setContentText("Enable Multi-threading?");
+                alert.setTitle("Enable Multi-threading?");
+                label.setWrapText(true);
+                alert.getDialogPane().setContent(label);
+                alert.showAndWait();
+                if (alert.getResult() == ButtonType.YES) {
+                    multi_threaded_chbox.setSelected(true);
+                }
+                if (alert.getResult() == ButtonType.NO) {
+                    multi_threaded_chbox.setSelected(false);
+                }
+            }
+        });
+
         reset_btn.setOnAction(actionEvent -> {
             pidController.reset_params();
             kp_user_in.setText(String.valueOf(pidController.getPidParams().getKP()));
@@ -173,15 +205,14 @@ public class Controller implements Initializable {
             Label label = new Label("The PSO algorithm will now try to find optimal parameters. After each generation,\n" +
                     "the optimal solutions will be applied to the PID controller to visualize progress.\n Due to the heuristic" +
                     " nature of the algorithm, it is not guaranteed that an optimal solution will be found.\n In that case restart" +
-                    " the algorithm. If the multi-threaded option is selected, the UI will become slow or unresponsive\n" +
-                    " but the algorithm will run much faster. Proceed?");
+                    " the algorithm. Proceed?");
             label.setWrapText(true);
             alert.getDialogPane().setContent(label);
             alert.showAndWait();
-
             if (alert.getResult() == ButtonType.YES) {
                 rnd_speed.setSelected(true);
                 pso = new ParticleSwarmOptimizer(10);
+                pso.setMulti_threaded(multi_threaded_chbox.isSelected());
                 Task pso_task = new Task() {
                     @Override
                     protected Object call() throws Exception {
@@ -228,6 +259,7 @@ public class Controller implements Initializable {
 
     }
 
+    //code from so:
     private void prepareTimeline() {
         new AnimationTimer() {
             @Override
@@ -239,7 +271,7 @@ public class Controller implements Initializable {
     }
 
     private void addDataToSeries() {
-        for (int i = 0; i < 20; i++) { //-- add 20 numbers to the plot+
+        for (int i = 0; i < 20; i++) {
             if (dataQ1.isEmpty()) break;
             series1.getData().add(new XYChart.Data<>(xSeriesData++, dataQ1.remove()));
             series2.getData().add(new XYChart.Data<>(xSeriesData++, dataQ2.remove()));
@@ -259,22 +291,7 @@ public class Controller implements Initializable {
         x_axis.setUpperBound(xSeriesData - 1);
     }
 
-
-    private class AddToQueue implements Runnable {
-        public void run() {
-            try {
-                // add a item of random data to queue
-                dataQ1.add(pidController.getSp());
-                dataQ2.add(pidController.getCurrentSpeed());
-                dataQ3.add(pidController.getCurrentError());
-                Thread.sleep(25);
-                executor.execute(this);
-            } catch (InterruptedException ex) {
-                ex.printStackTrace();
-            }
-        }
-    }
-
+    //end code from so
     public static class Console extends OutputStream {
 
         private TextArea output;
@@ -300,6 +317,21 @@ public class Controller implements Initializable {
         public void write(String str) throws IOException {
             for (char c: str.toCharArray()) {
                 write(c);
+            }
+        }
+    }
+
+    private class AddToQueue implements Runnable {
+        public void run() {
+            try {
+                // add a item of random data to queue
+                dataQ1.add(pidController.getSp());
+                dataQ2.add(pidController.getCurrentSpeed());
+                dataQ3.add(pidController.getCurrentError());
+                Thread.sleep(50);
+                executor.execute(this);
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
             }
         }
     }

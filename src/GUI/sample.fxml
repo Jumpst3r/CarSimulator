@@ -1,15 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.*?>
-<?import javafx.scene.paint.*?>
-<?import javafx.scene.effect.*?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.shape.*?>
-<?import javafx.scene.chart.*?>
-<?import java.lang.*?>
-<?import javafx.scene.layout.*?>
-
-<AnchorPane prefHeight="665.0" prefWidth="1097.0" style="-fx-background-color: WHITE;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.layout.AnchorPane?>
+<AnchorPane xmlns:fx="http://javafx.com/fxml/1" prefHeight="665.0" prefWidth="1097.0"
+            style="-fx-background-color: rgba(255, 255, 255);" xmlns="http://javafx.com/javafx/8">
    <children>
       <LineChart fx:id="pid_chart" alternativeRowFillVisible="false" createSymbols="false" prefHeight="400.0" prefWidth="1100.0" title="Car Velocity" verticalGridLinesVisible="false">
         <xAxis>
@@ -24,25 +21,54 @@
       </LineChart>
       <Separator layoutX="14.0" layoutY="391.0" prefHeight="28.0" prefWidth="1086.0" />
       <Label layoutX="35.0" layoutY="419.0" text="Car desired speed (m/s)" />
-      <Slider fx:id="sp_slider" blockIncrement="1.0" layoutX="25.0" layoutY="447.0" majorTickUnit="10.0" max="50.0" prefHeight="38.0" prefWidth="176.0" showTickLabels="true" showTickMarks="true" value="10.0" />
+       <Slider fx:id="sp_slider" blockIncrement="1.0" layoutX="25.0" layoutY="447.0" majorTickUnit="10.0" max="50.0"
+               prefHeight="38.0" prefWidth="176.0" showTickLabels="true" showTickMarks="true" value="10.0">
+           <tooltip>
+               <Tooltip text="Manually set the car's desired speed"/>
+           </tooltip>
+       </Slider>
       <Separator layoutX="406.0" layoutY="405.0" orientation="VERTICAL" prefHeight="260.0" prefWidth="26.0" />
-      <CheckBox fx:id="adv_ctrl" layoutX="242.0" layoutY="418.0" mnemonicParsing="false" text="Advanced Controls" />
+       <CheckBox fx:id="adv_ctrl" layoutX="242.0" layoutY="418.0" mnemonicParsing="false" text="Advanced Controls">
+           <tooltip>
+               <Tooltip text="Enable advanced controls"/>
+           </tooltip>
+       </CheckBox>
       <Label layoutX="242.0" layoutY="447.0" text="KP" />
       <Label layoutX="242.0" layoutY="482.0" text="KD" />
       <Label layoutX="243.0" layoutY="517.0" text="KI" />
       <TextField fx:id="kp_user_in" layoutX="275.0" layoutY="442.0" prefHeight="25.0" prefWidth="112.0" />
       <TextField fx:id="kd_user_in" layoutX="275.0" layoutY="476.0" prefHeight="25.0" prefWidth="112.0" />
       <TextField fx:id="ki_user_in" layoutX="275.0" layoutY="511.0" prefHeight="25.0" prefWidth="112.0" />
-      <CheckBox fx:id="acc_lim_toggle" layoutX="247.0" layoutY="584.0" mnemonicParsing="false" text="Limit Acceleration" />
-      <Button fx:id="reset_btn" layoutX="244.0" layoutY="549.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="147.0" text="Reset" />
+       <CheckBox fx:id="acc_lim_toggle" layoutX="247.0" layoutY="584.0" mnemonicParsing="false"
+                 text="Limit Acceleration">
+           <tooltip>
+               <Tooltip text="Limit the car's accelerationt to +- 6m/s"/>
+           </tooltip>
+       </CheckBox>
+       <Button fx:id="reset_btn" layoutX="244.0" layoutY="549.0" mnemonicParsing="false" prefHeight="25.0"
+               prefWidth="147.0" text="Reset">
+           <tooltip>
+               <Tooltip text="Reset the parameters to their initial value"/>
+           </tooltip>
+       </Button>
       <Separator layoutX="201.0" layoutY="406.0" orientation="VERTICAL" prefHeight="260.0" prefWidth="26.0" />
       <Label layoutX="438.0" layoutY="419.0" text="Particle Swarm Optimizer (PSO)" />
-      <TextArea fx:id="console0" editable="false" layoutX="438.0" layoutY="449.0" prefHeight="200.0" prefWidth="639.0" promptText="PSO algorithm not running." />
+       <TextArea fx:id="console0" editable="false" focusTraversable="false" layoutX="438.0" layoutY="449.0"
+                 mouseTransparent="true" prefHeight="200.0" prefWidth="639.0" promptText="PSO algorithm not running."/>
       <Button fx:id="start_pso" layoutX="660.0" layoutY="414.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="142.0" style="-fx-background-color: LIGHTGREEN;" text="start optimization" />
       <Button fx:id="stop_pso" layoutX="809.0" layoutY="414.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="157.0" style="-fx-background-color: red;" text="stop optimization" />
-      <CheckBox fx:id="rnd_speed" layoutX="25.0" layoutY="492.0" mnemonicParsing="false" text="Randomize speed" />
+       <CheckBox fx:id="rnd_speed" layoutX="25.0" layoutY="492.0" mnemonicParsing="false" text="Randomize speed">
+           <tooltip>
+               <Tooltip text="Periodically randomize desired speed"/>
+           </tooltip>
+       </CheckBox>
       <Label layoutX="918.0" layoutY="50.0" text="current speed:" />
       <Label fx:id="speed_lbl" layoutX="1024.0" layoutY="50.0" prefHeight="15.0" prefWidth="53.0" />
-      <CheckBox layoutX="973.0" layoutY="418.0" mnemonicParsing="false" text="Multi threaded" />
+       <CheckBox fx:id="multi_threaded_chbox" layoutX="973.0" layoutY="418.0" mnemonicParsing="false"
+                 text="Multi threaded">
+           <tooltip>
+               <Tooltip text="Enable multi-threading for the PSO algorithm"/>
+           </tooltip>
+       </CheckBox>
    </children>
 </AnchorPane>
