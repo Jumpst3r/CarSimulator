@@ -1,5 +1,8 @@
 package GUI;
 
+import GUI.Observer.Observer;
+import GUI.Observer.Subject;
+import GUI.Observer.SubjectState;
 import PIDController.PIDController;
 import PIDController.PIDParams;
 import ParticleSwarmOptimizer.ParticleSwarmOptimizer;
@@ -23,14 +26,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class Controller implements Initializable {
+public class Controller extends Observer implements Initializable {
     /**
      * This class regroups all UI elements. The
      * code for the javafx linechart element is
      * taken from https://stackoverflow.com/questions/22089022/line-chart-live-update,
      * the post by user ItachiUchiha which consists of
-     * the functions addDataToSeries() addDataToSeries() prepareTimeline(),
-     * and the private class AddToQueue.
+     * the functions addDataToSeries() addDataToSeries() prepareTimeline()
      */
     private static final int MAX_DATA_POINTS = 600;
     private int xSeriesData = 0;
@@ -45,6 +47,7 @@ public class Controller implements Initializable {
 
     private PIDController pidController;
     private ParticleSwarmOptimizer pso;
+    private Subject pidSubject;
 
 
     @FXML
@@ -95,15 +98,13 @@ public class Controller implements Initializable {
     @FXML
     private CheckBox multi_threaded_chbox;
 
-    public void updateConsole(String str) {
-        console0.setText(console0.getText() + str);
-    }
-
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         CONSOLE = new Console(console0);
         pidController = new PIDController(new PIDParams(5.5958884831108175, 0.18911251211841631, 0.001709275613215766), 20);
         pidController.setSp(sp_slider.getValue());
+        pidSubject = pidController;
+        pidSubject.register(this);
         new Thread(pidController).start();
         pid_chart.getData().addAll(series1, series2, series3);
         executor = Executors.newCachedThreadPool(r -> {
@@ -111,9 +112,6 @@ public class Controller implements Initializable {
             thread.setDaemon(true);
             return thread;
         });
-
-        AddToQueue addToQueue = new AddToQueue();
-        executor.execute(addToQueue);
         prepareTimeline();
         series1.setName("Desired speed");
         series2.setName("Actual speed");
@@ -291,6 +289,14 @@ public class Controller implements Initializable {
         x_axis.setUpperBound(xSeriesData - 1);
     }
 
+    @Override
+    public void update() {
+        SubjectState state = pidSubject.getState();
+        dataQ1.add(state.getSetPoint());
+        dataQ2.add(state.getCurrentSpeed());
+        dataQ3.add(state.getCurrentError());
+    }
+
     //end code from so
     public static class Console extends OutputStream {
 
@@ -317,21 +323,6 @@ public class Controller implements Initializable {
         public void write(String str) throws IOException {
             for (char c: str.toCharArray()) {
                 write(c);
-            }
-        }
-    }
-
-    private class AddToQueue implements Runnable {
-        public void run() {
-            try {
-                // add a item of random data to queue
-                dataQ1.add(pidController.getSp());
-                dataQ2.add(pidController.getCurrentSpeed());
-                dataQ3.add(pidController.getCurrentError());
-                Thread.sleep(50);
-                executor.execute(this);
-            } catch (InterruptedException ex) {
-                ex.printStackTrace();
             }
         }
     }
@@ -364,9 +355,5 @@ public class Controller implements Initializable {
         public void run() {
             thread.start();
         }
-
-        public void stop() {
-            thread.interrupt();
         }
-    }
 }

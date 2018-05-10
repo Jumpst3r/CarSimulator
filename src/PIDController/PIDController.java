@@ -1,6 +1,8 @@
 package PIDController;
 
 import CarSimulator.CarSimulator;
+import GUI.Observer.Subject;
+import GUI.Observer.SubjectState;
 
 import java.util.ArrayList;
 
@@ -10,7 +12,7 @@ import java.util.ArrayList;
  * @author Nicolas Dutly
  * @version 1.0
  */
-public class PIDController implements Runnable {
+public class PIDController extends Subject implements Runnable {
 
     /**
      * the current PID parameters
@@ -88,6 +90,7 @@ public class PIDController implements Runnable {
             this.currentSpeed = simulator.getSpeed();
             s_old_error = s_error;
             nanoTime_old = System.nanoTime();
+            super.notify_observers();
         }
     }
 
@@ -106,21 +109,6 @@ public class PIDController implements Runnable {
         return currentSpeed;
     }
 
-    /**
-     * Get the simulator's current error
-     * @return the current error
-     */
-    public double getCurrentError() {
-        return currentError;
-    }
-
-    /**
-     * Get the simulator's current set point
-     * @return the current set point
-     */
-    public double getSp() {
-        return sp;
-    }
 
     /**
      * Set the simulator's current set point
@@ -152,4 +140,9 @@ public class PIDController implements Runnable {
     public void setLimAcc(boolean limAcc) {
         this.limAcc = limAcc;
     }
+
+    public SubjectState getState(){
+        return new SubjectState(this.currentSpeed, this.currentError, this.sp, this.pidParams);
+    }
+
 }
